@@ -1,42 +1,35 @@
+import { getUserProfile } from './github-api.js';
+import { showLoading, showMessage, showProfile } from './profile-view.js';
+
 const inputSearch = document.getElementById('input-search');
 const btnSearch = document.getElementById('btn-search');
-const profileResults = document.querySelector('.profile-results');
 
-const BASE_URL = 'https://api.github.com';
-
-btnSearch.addEventListener('click', async () => {
-    const userName = inputSearch.value;
+async function handleSearch() {
+    const userName = inputSearch.value.trim();
 
     if (userName) {
-        profileResults.innerHTML = `<p class="loading">Carregando...</p>`;
+        showLoading();
 
         try {
-            const response = await fetch(`${BASE_URL}/users/${userName}`);
-            if (!response.ok) {
-                alert('Usuário não encontrado. Por favor, verifique o nome de usuário e tente novamente.');
+            const userData = await getUserProfile(userName);
+            showProfile(userData);
+        } catch (error) {
+            if (error.message === 'USER_NOT_FOUND') {
+                showMessage('Usuário não encontrado. Verifique o nome e tente novamente.');
                 return;
             }
 
-            const userData = await response.json();
-            console.log(userData);
-
-            profileResults.innerHTML = `
-        <div class="profile-card">
-        
-        <img src="${userData.avatar_url}" alt="Avatar de ${userData.name}" class="profile avatar">
-        <div class="profile-info">
-        <h2>${userData.name}</h2>
-        <p>${userData.bio || 'Não possui bio cadastrada. 😢'}</p>
-        </div>
-
-        </div>`;
-
-        } catch (error) {
-            console.error('Erro ao buscar o perfil do usuãrio', error);
-            alert('Ocorreu um erro ao buscar o perfil do usuário. Por favor tente novamente mais tarde.');
+            console.error('Erro ao buscar o perfil do usuário:', error);
+            showMessage('Ocorreu um erro ao buscar o perfil. Tente novamente mais tarde.');
         }
-
     } else {
-        alert('Por favor, digite um nome de usuário do GitHub')
+        showMessage('Por favor, digite um nome de usuário do GitHub.');
+    }
+}
+
+btnSearch.addEventListener('click', handleSearch);
+inputSearch.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+        handleSearch();
     }
 });
