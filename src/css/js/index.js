@@ -1,4 +1,4 @@
-import { getUserProfile } from './github-api.js';
+import { getUserProfile, fetchGithubUserRepos } from './github-api.js';
 import { showLoading, showMessage, showProfile } from './profile-view.js';
 
 const inputSearch = document.getElementById('input-search');
@@ -12,7 +12,8 @@ async function handleSearch() {
 
         try {
             const userData = await getUserProfile(userName);
-            showProfile(userData);
+            const userRepos = await fetchGithubUserRepos(userName);
+            showProfile(userData, userRepos);
         } catch (error) {
             if (error.message === 'USER_NOT_FOUND') {
                 showMessage('Usuário não encontrado. Verifique o nome e tente novamente.');
